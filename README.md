@@ -1,4 +1,4 @@
-# BopIt Presentation | *Assignment 9*
+# Bop-It! Presentation | *Assignment 9*
 ##### Junior Design Fundementals _(ECE1175)_
 <br/> 
 
