@@ -1,0 +1,8 @@
+# Outputs 
+
+**Hex Display** 
+- Use two hex displays for the user score, through 99 
+- Set score to 00 when the game has finished 
+
+**LEDs** 
+- Use green and red LEDs that will flash when input is correct/incorrect
