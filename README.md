@@ -1,5 +1,5 @@
 # Bop-It! Presentation | *Assignment 10*
-##### Junior Design Fundementals _(ECE1175)_
+##### Junior Design Fundamentals _(ECE1895)_
 <br/> 
 
 ### [Slideshow Presentation](https://els187.github.io/github-slideshow/#/)
