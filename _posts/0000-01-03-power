@@ -3,8 +3,6 @@ layout: slide
 title: power
 ---
 
-# Power Requirements 
-
 - Use switch to power device on/off 
 - We are still thinking of a possible enclosure, but don't want it to complicate our design 
 - We will use a speaker for voice commands: _"flick it, squeeze it, shake it"_
