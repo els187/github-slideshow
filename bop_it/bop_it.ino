@@ -146,7 +146,6 @@ void setScore(int scoreVal)
 
 void displayScore(int scoreVal)
 {
-  Serial.begin(9600);
   //Convert the score to 2 BCD numbers
   int hex1, hex0;
   hex1 = (scoreVal/10) % 10;
