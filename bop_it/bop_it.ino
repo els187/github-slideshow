@@ -28,6 +28,9 @@
 const int RED[3] = {255, 0, 0};
 const int GREEN[3] = {0, 255, 0};
 const int YELLOW[3] = {255, 255, 0};
+const int BLUE[3] = {0, 255, 255};
+const int PURPLE[3] = {147, 112, 219};
+
 
 //Game State Configuration
 int game;
@@ -40,7 +43,7 @@ int game;
 int score;
 
 //Sensor List Configuration
-const String sensorInputList[3] = {"SqueezeIt", "ShakeIt", "FlickIt"};
+const String sensorInputList[3] = {"SqueezeIt", "FlickIt", "ShakeIt"};
 
 //Function prototypes
 void startButtonHandler();
@@ -56,6 +59,7 @@ String getInput();
 String getInput();
 void playSound();
 void sound();
+void real();
 
 
 void setup()
@@ -64,7 +68,7 @@ void setup()
   game = SETUP;
 
   //Initialize pins
-  pinMode(velostat, INPUT);
+  pinMode(velostat, INPUT_PULLUP);
   pinMode(joystickX, INPUT);
   pinMode(joystickY, INPUT);
   pinMode(tilt, INPUT_PULLUP);
@@ -83,16 +87,36 @@ void setup()
   pinMode(soundA, OUTPUT);
   pinMode(soundB, OUTPUT);
   pinMode(soundC, OUTPUT);
+  
+  analogWrite(velostat, 0);
+  analogWrite(joystickX, 0);
+  analogWrite(joystickY, 0);
+  analogWrite(tilt, 0);
+  analogWrite(startGame, 0);
+  digitalWrite(hex1A, 0);
+  digitalWrite(hex1B, 0);
+  digitalWrite(hex1C, 0);
+  digitalWrite(hex1D, 0);
+  digitalWrite(hex0A, 0);
+  digitalWrite(hex0B, 0);
+  digitalWrite(hex0C, 0);
+  digitalWrite(hex0D, 0);
+  digitalWrite(redLED, 0);
+  digitalWrite(greenLED, 0);
+  digitalWrite(blueLED, 0);
+  digitalWrite(soundA, 0);
+  digitalWrite(soundB, 0);
+  digitalWrite(soundC, 0);
 
   //Initialize seed for random number generator
   //Noise from unconnected analog pin will result in a new random number being generated each time
   randomSeed(analogRead(randomNumSeed));
 }
-
 void loop()
 {
   //Wait Until Button Pressed Event Occurs
   while(game != START) startButtonHandler();
+  //flashRGB(PURPLE);
 
   //Initialize Game
   setScore(0);
@@ -113,12 +137,12 @@ void loop()
         flashRGB(YELLOW);
         game = WON;
       }
-      else
-      {
-        sound("LoseGame");
-        flashRGB(RED);
-        game = LOST;
-      }
+    }
+    else
+    {
+      sound("LoseGame");
+      flashRGB(RED);
+      game = LOST;
     }
   }  
 }
@@ -152,46 +176,63 @@ void displayScore(int scoreVal)
   hex0 = scoreVal % 10;
 
   //Write the score to the hex displays
-  digitalWrite(hex1A, hex1 >> 0);
-  digitalWrite(hex1A, hex1 >> 1);
-  digitalWrite(hex1A, hex1 >> 2);
-  digitalWrite(hex1A, hex1 >> 3);
-  digitalWrite(hex0A, hex0 >> 0);
-  digitalWrite(hex0A, hex0 >> 1);
-  digitalWrite(hex0A, hex0 >> 2);
-  digitalWrite(hex0A, hex0 >> 3);
+  digitalWrite(hex1A, (hex1 >> 0) & 0x1);
+  digitalWrite(hex1B, (hex1 >> 1) & 0x1);
+  digitalWrite(hex1C, (hex1 >> 2) & 0x1);
+  digitalWrite(hex1D, (hex1 >> 3) & 0x1);
+  digitalWrite(hex0A, (hex0 >> 0) & 0x1);
+  digitalWrite(hex0B, (hex0 >> 1) & 0x1);
+  digitalWrite(hex0C, (hex0 >> 2) & 0x1);
+  digitalWrite(hex0D, (hex0 >> 3) & 0x1);
+  
+  
 }
 
 void sound(String soundName)
 {      
   if(soundName == "StartGame")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, HIGH);
+    digitalWrite(soundB, HIGH);
+    digitalWrite(soundC, HIGH);
   }
   else if(soundName == "CorrectInput")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, LOW);
+    digitalWrite(soundB, LOW);
+    digitalWrite(soundC, HIGH);
   }
   else if(soundName == "LoseGame")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, LOW);
+    digitalWrite(soundB, HIGH);
+    digitalWrite(soundC, LOW);
   }
   else if(soundName == "WinGame")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, LOW);
+    digitalWrite(soundB, HIGH);
+    digitalWrite(soundC, HIGH);
   }
   else if(soundName == "FlickIt")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, HIGH);
+    digitalWrite(soundB, LOW);
+    digitalWrite(soundC, LOW);
   }
   else if(soundName == "SqueezeIt")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, HIGH);
+    digitalWrite(soundB, LOW);
+    digitalWrite(soundC, HIGH);
   }
   else if(soundName == "ShakeIt")
   {
-    //manipulate soundA, soundB, soundC here
+    digitalWrite(soundA, HIGH);
+    digitalWrite(soundB, HIGH);
+    digitalWrite(soundC, LOW);
   }
+  delay(1000);
 }
 
 bool userHitNewInputCorrectlyInTime()
@@ -209,35 +250,36 @@ bool userHitNewInputCorrectlyInTime()
   //Start the timer to determine the action deadline
   int startTime = startTimer();
 
+  //Determine the time limit
+  int timeLimit = getTimeLimit(score);
+
   //Wait until user does action or runs out of time
-  while(userInput = "Nothing" && elapsedTime <= getTimeLimit(score))
+  while(userInput == "Nothing" && elapsedTime <= timeLimit)
   {
     //Recalculate the elapsed time
     elapsedTime = checkTimer(startTime);
-
+    
     //Get the user input
     userInput = getInput();
   }
 
-  //Check if the action was entered correcly and on time
-  if(userInput == sensorToPress && elapsedTime <= getTimeLimit(score)) return true;
+  if(userInput == sensorToPress) return true;
   else return false;
-
-  
 }
 
 int getTimeLimit(int score)
 {
-  if(score <= 10) return 3000;
-  else if(score <= 20) return 2900;
-  else if(score <= 30) return 2700;
-  else if(score <= 40) return 2500;
-  else if(score <= 50) return 2300;
-  else if(score <= 60) return 2000;
-  else if(score <= 70) return 1900;
-  else if(score <= 80) return 1800;
-  else if(score <= 90) return 1700;
-  else return 1600;
+  //The *4 is for debugging purposes to make delays longer 
+  if(score <= 10) return 3000*4;
+  else if(score <= 20) return 2900*4;
+  else if(score <= 30) return 2700*4;
+  else if(score <= 40) return 2500*4;
+  else if(score <= 50) return 2300*4;
+  else if(score <= 60) return 2000*4;
+  else if(score <= 70) return 1900*4;
+  else if(score <= 80) return 1800*4;
+  else if(score <= 90) return 1700*4;
+  else return 1600*4;
 }
 
 int startTimer()
@@ -255,13 +297,14 @@ String chooseRandomInput(String inputs[])
 {
   int index = random(0,3);
   sound(inputs[index]);
+  return inputs[index];
 }
 
 String getInput()
 {
   //Read joystick input (allows motion in any direction
-  if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200) return sensorInputList[3];
-  //else if velostat return sensorInputList[1];
-  //else if tilt sensor return sensorInputList[2];
+  if (analogRead(tilt) > 200) return sensorInputList[2];
+  else if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200) return sensorInputList[1];
+  else if (analogRead(velostat) < 150) return sensorInputList[0];
   else return "Nothing";
 }

@@ -1,10 +1,14 @@
-#define joystickX A0
-#define joystickY A1
-#define velostat A2
-#define LED1 8
-#define LED2 9
-#define empty A3
-#define tilt A4
+#define joystickX A1
+#define joystickY A2
+#define velostat A0
+#define LED1 12
+#define LED2 13
+#define LED3 0
+#define empty A5
+#define tilt A3
+#define redLED 9
+#define greenLED 10
+#define blueLED 11
 
 //Input test functions
 void readJoystick();
@@ -19,10 +23,19 @@ String getInput();
 
 //Other test functions
 void randomTest();
+void flashRGB(int color[]);
+void testRGB();
+void testGetInput();
 
 //Global variables
 int lastTiltState = HIGH;
 int score;
+
+//Color Assignments
+const int RED[3] = {255, 0, 0};
+const int GREEN[3] = {0, 255, 0};
+const int YELLOW[3] = {255, 255, 0};
+const int PURPLE[3] = {147, 112, 219};
 
 void setup() {
 
@@ -31,8 +44,10 @@ void setup() {
   pinMode(joystickY, INPUT);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
+  pinMode(LED3, OUTPUT);
   pinMode(empty, INPUT);
   pinMode(tilt, INPUT_PULLUP);
+  pinMode(velostat, INPUT_PULLUP);
 
   //Initialize score to 0
   score = 0;
@@ -44,7 +59,7 @@ void setup() {
 void loop() {
   //Tests the timer and the intervals
   //if(score >= 100) score = 0;
-  //testTimer();
+  testTimer();
 
   //Tests random number generator
   //randomTest();
@@ -57,17 +72,27 @@ void loop() {
 
   //Tests the tilt input
   //readTiltSensor();
+
+  //TestsRGB led
+  //testRGB();
+
+  //Tests reading all inputs
+  //testGetInput();
   
 }
 
 //Tilt sensor test function
 void readTiltSensor()
 {
-  long lastDebounceTime = 0;
-  long debounceDelay = 50;
-  int sensorValue = digitalRead(tilt);
-  if (sensorValue == lastTiltState) lastDebounceTime = millis();
-  if ((millis() - lastDebounceTime) > debounceDelay) lastTiltState = sensorValue;
+  if(analogRead(tilt) > 200)
+  {
+    digitalWrite(LED2, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED2, LOW);
+  }
+  delay(50);
 }
 //Joystick test function
 void readJoystick()
@@ -122,15 +147,11 @@ void testTimer()
 int getTimeLimit(int score)
 {
   if(score <= 10) return 3000;
-  else if(score <= 20) return 2900;
-  else if(score <= 30) return 2700;
-  else if(score <= 40) return 2500;
-  else if(score <= 50) return 2300;
-  else if(score <= 60) return 2000;
-  else if(score <= 70) return 1900;
-  else if(score <= 80) return 1800;
-  else if(score <= 90) return 1700;
-  else return 1600;
+  else if(score <= 20) return 2500;
+  else if(score <= 30) return 2000;
+  else if(score <= 40) return 1500;
+  else if(score <= 50) return 1000;
+  else return 500;
 }
 
 int startTimer()
@@ -146,12 +167,14 @@ int checkTimer(int startTime)
 
 void randomTest()
 {
-  int num = random(0,2);
+  int num = random(0,3);
   if(num == 1) digitalWrite(LED1, HIGH);
-  else digitalWrite(LED2, HIGH);
+  else if(num == 2) digitalWrite(LED2, HIGH);
+  else digitalWrite(LED3, HIGH);
   delay(500);
   digitalWrite(LED1, LOW);
   digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
   delay(500);
   
 }
@@ -160,6 +183,51 @@ void readVelostat()
 {
   //Note: value 190 must be adjusted, they had 150 to detect a step
   //in the firewalker shoe to detect a step, and I figured squeezing would be slightly less pressure
-  if(analogRead(velostat) < 190) digitalWrite(LED1, HIGH);
-  else digitalWrite(LED2, LOW);
+  if(analogRead(velostat) < 150) digitalWrite(LED1, HIGH);
+  else digitalWrite(LED1, LOW);
+}
+
+void flashRGB(int color[])
+{
+  analogWrite(redLED, color[0]);
+  analogWrite(greenLED, color[1]);
+  analogWrite(blueLED, color[2]);
+}
+void testRGB()
+{
+ flashRGB(RED);
+ delay(1000);
+ flashRGB(GREEN);
+ delay(1000);
+ flashRGB(YELLOW);
+ delay(1000);
+}
+
+void testGetInput()
+{
+  //Read joystick input (allows motion in any direction
+  if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200)
+  {
+    digitalWrite(LED1, HIGH);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, LOW);
+  }
+  else if (analogRead(velostat) < 150)
+  {
+    digitalWrite(LED1, LOW);
+    digitalWrite(LED2, HIGH);
+    digitalWrite(LED3, LOW);
+  }
+  else if (analogRead(tilt) > 200)
+  {
+    digitalWrite(LED1, LOW);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED1, HIGH);
+    digitalWrite(LED2, HIGH);
+    digitalWrite(LED3, HIGH);
+  }
 }
