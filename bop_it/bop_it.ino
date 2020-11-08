@@ -88,11 +88,6 @@ void setup()
   pinMode(soundB, OUTPUT);
   pinMode(soundC, OUTPUT);
   
-  analogWrite(velostat, 0);
-  analogWrite(joystickX, 0);
-  analogWrite(joystickY, 0);
-  analogWrite(tilt, 0);
-  analogWrite(startGame, 0);
   digitalWrite(hex1A, 0);
   digitalWrite(hex1B, 0);
   digitalWrite(hex1C, 0);
@@ -101,9 +96,6 @@ void setup()
   digitalWrite(hex0B, 0);
   digitalWrite(hex0C, 0);
   digitalWrite(hex0D, 0);
-  digitalWrite(redLED, 0);
-  digitalWrite(greenLED, 0);
-  digitalWrite(blueLED, 0);
   digitalWrite(soundA, 0);
   digitalWrite(soundB, 0);
   digitalWrite(soundC, 0);
@@ -116,7 +108,7 @@ void loop()
 {
   //Wait Until Button Pressed Event Occurs
   while(game != START) startButtonHandler();
-  //flashRGB(PURPLE);
+  flashRGB(PURPLE);
 
   //Initialize Game
   setScore(0);
@@ -149,7 +141,7 @@ void loop()
 
 void startButtonHandler()
 {
-  if (analogRead(startGame) > 200) game = START;
+  if (analogRead(startGame) < 100) game = START;
 }
 
 void flashRGB(int color[])
@@ -184,8 +176,6 @@ void displayScore(int scoreVal)
   digitalWrite(hex0B, (hex0 >> 1) & 0x1);
   digitalWrite(hex0C, (hex0 >> 2) & 0x1);
   digitalWrite(hex0D, (hex0 >> 3) & 0x1);
-  
-  
 }
 
 void sound(String soundName)
@@ -302,9 +292,20 @@ String chooseRandomInput(String inputs[])
 
 String getInput()
 {
-  //Read joystick input (allows motion in any direction
-  if (analogRead(tilt) > 200) return sensorInputList[2];
-  else if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200) return sensorInputList[1];
-  else if (analogRead(velostat) < 150) return sensorInputList[0];
-  else return "Nothing";
+  if(analogRead(joystickX) > 1020 || analogRead(joystickX) < 20 || analogRead(joystickY) > 1020 || analogRead(joystickY) < 20)
+  {
+    return sensorInputList[1];
+  }
+  else if (analogRead(velostat) < 150)
+  {
+    return sensorInputList[0];
+  }
+  else if (analogRead(tilt) < 200)
+  {
+    return sensorInputList[2];
+  }
+  else
+  {
+    return "Nothing";
+  }
 }

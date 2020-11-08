@@ -1,9 +1,9 @@
 #define joystickX A1
 #define joystickY A2
 #define velostat A0
-#define LED1 12
-#define LED2 13
-#define LED3 0
+#define LED1 0
+#define LED2 12
+#define LED3 13
 #define empty A5
 #define tilt A3
 #define redLED 9
@@ -59,7 +59,7 @@ void setup() {
 void loop() {
   //Tests the timer and the intervals
   //if(score >= 100) score = 0;
-  testTimer();
+  //testTimer();
 
   //Tests random number generator
   //randomTest();
@@ -77,8 +77,37 @@ void loop() {
   //testRGB();
 
   //Tests reading all inputs
-  //testGetInput();
+  testGetInput();
   
+}
+
+void testGetInput()
+{
+  //Read joystick input (allows motion in any direction
+  if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200)
+  {
+    digitalWrite(LED1, HIGH);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, LOW);
+  }
+  else if (analogRead(velostat) < 150)
+  {
+    digitalWrite(LED1, LOW);
+    digitalWrite(LED2, HIGH);
+    digitalWrite(LED3, LOW);
+  }
+  else if (analogRead(tilt) < 200)
+  {
+    digitalWrite(LED1, LOW);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED1, HIGH);
+    digitalWrite(LED2, HIGH);
+    digitalWrite(LED3, HIGH);
+  }
 }
 
 //Tilt sensor test function
@@ -201,33 +230,4 @@ void testRGB()
  delay(1000);
  flashRGB(YELLOW);
  delay(1000);
-}
-
-void testGetInput()
-{
-  //Read joystick input (allows motion in any direction
-  if(analogRead(joystickX) > 1000 || analogRead(joystickX) < 200 || analogRead(joystickY) > 1000 || analogRead(joystickY) < 200)
-  {
-    digitalWrite(LED1, HIGH);
-    digitalWrite(LED2, LOW);
-    digitalWrite(LED3, LOW);
-  }
-  else if (analogRead(velostat) < 150)
-  {
-    digitalWrite(LED1, LOW);
-    digitalWrite(LED2, HIGH);
-    digitalWrite(LED3, LOW);
-  }
-  else if (analogRead(tilt) > 200)
-  {
-    digitalWrite(LED1, LOW);
-    digitalWrite(LED2, LOW);
-    digitalWrite(LED3, HIGH);
-  }
-  else
-  {
-    digitalWrite(LED1, HIGH);
-    digitalWrite(LED2, HIGH);
-    digitalWrite(LED3, HIGH);
-  }
 }
