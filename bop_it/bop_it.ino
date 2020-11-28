@@ -1,6 +1,6 @@
 /*ECE 1895 Design Project: Bop It
- * Meara Murphy, Tom Driscoll, Lizzie Seward
- */
+ *Meara Murphy, Tom Driscoll, Lizzie Seward
+*/
 
 //Pin Assignments
 #define velostat A0
@@ -17,18 +17,18 @@
 #define hex0B 6
 #define hex0C 7
 #define hex0D 8
-#define redLED 9
-#define greenLED 10
-#define blueLED 11
+#define redLED 12
+#define greenLED 11
+#define blueLED 13
 #define soundA 0
-#define soundB 12
-#define soundC 13
+#define soundB 9
+#define soundC 10
 
 //Color Assignments
 const int RED[3] = {255, 0, 0};
 const int GREEN[3] = {0, 255, 0};
 const int YELLOW[3] = {255, 255, 0};
-const int BLUE[3] = {0, 255, 255};
+const int BLUE[3] = {0, 0, 255};
 const int PURPLE[3] = {147, 112, 219};
 
 
@@ -41,6 +41,9 @@ int game;
 
 //Score Configuration
 int score;
+
+//Velostat configuration
+int velostatRest;
 
 //Sensor List Configuration
 const String sensorInputList[3] = {"SqueezeIt", "FlickIt", "ShakeIt"};
@@ -56,10 +59,9 @@ int getTimeLimit(int);
 int startTimer();
 int checkTimer(int);
 String getInput();
-String getInput();
-void playSound();
 void sound();
-void real();
+
+bool soundPlayed;
 
 
 void setup()
@@ -103,12 +105,25 @@ void setup()
   //Initialize seed for random number generator
   //Noise from unconnected analog pin will result in a new random number being generated each time
   randomSeed(analogRead(randomNumSeed));
+
+  //Initialize soundplayed to 0
+  //soundPlayed = 0;
 }
 void loop()
 {
+  //Sample the resting position of the velostat
+  int sum = 0;
+  for (int i = 0; i<10; i++)
+  {
+    sum += analogRead(velostat);
+  }
+
+  //Make the velostat rest the resting position
+  velostatRest = sum/10;
+  
   //Wait Until Button Pressed Event Occurs
   while(game != START) startButtonHandler();
-  flashRGB(PURPLE);
+  flashRGB(BLUE);
 
   //Initialize Game
   setScore(0);
@@ -117,6 +132,7 @@ void loop()
   //Play Game
   while(game != LOST && game != WON)
   {
+    soundPlayed = 0;
     if(userHitNewInputCorrectlyInTime() == true)
     {
       sound("CorrectInput");
@@ -137,11 +153,16 @@ void loop()
       game = LOST;
     }
   }  
+ 
+
 }
 
 void startButtonHandler()
 {
-  if (analogRead(startGame) < 100) game = START;
+  if (analogRead(startGame) < 100)
+  {
+    game = START;
+  }
 }
 
 void flashRGB(int color[])
@@ -179,50 +200,58 @@ void displayScore(int scoreVal)
 }
 
 void sound(String soundName)
-{      
-  if(soundName == "StartGame")
+{     
+  if(!soundPlayed)
+  { 
+    if(soundName == "StartGame" || soundName == "CorrectInput" || soundName == "WinGame")
+    {
+      digitalWrite(soundC, LOW);
+      digitalWrite(soundB, LOW);
+      digitalWrite(soundA, HIGH);
+      delay(10);
+      //delay(2000);
+    }
+    else if(soundName == "LoseGame")
+    {
+      digitalWrite(soundC, LOW);
+      digitalWrite(soundB, HIGH);
+      digitalWrite(soundA, LOW);
+      delay(10);
+      //delay(2000);
+    }
+    else if(soundName == "FlickIt")
+    {
+      digitalWrite(soundC, LOW);
+      digitalWrite(soundB, HIGH);
+      digitalWrite(soundA, HIGH);
+      delay(10);
+      //delay(2000);
+    }
+    else if(soundName == "SqueezeIt")
+    {
+      digitalWrite(soundC, HIGH);
+      digitalWrite(soundB, LOW);
+      digitalWrite(soundA, HIGH);
+      delay(10);
+      //delay(2000);
+    }
+    else if(soundName == "ShakeIt")
+    {
+      digitalWrite(soundC, HIGH);
+      digitalWrite(soundB, HIGH);
+      digitalWrite(soundA, LOW);
+      delay(10);
+      //delay(2000);
+      
+    }
+    soundPlayed = 1;
+  }
+  else 
   {
-    digitalWrite(soundA, HIGH);
-    digitalWrite(soundB, HIGH);
     digitalWrite(soundC, HIGH);
-  }
-  else if(soundName == "CorrectInput")
-  {
-    digitalWrite(soundA, LOW);
-    digitalWrite(soundB, LOW);
-    digitalWrite(soundC, HIGH);
-  }
-  else if(soundName == "LoseGame")
-  {
-    digitalWrite(soundA, LOW);
     digitalWrite(soundB, HIGH);
-    digitalWrite(soundC, LOW);
-  }
-  else if(soundName == "WinGame")
-  {
-    digitalWrite(soundA, LOW);
-    digitalWrite(soundB, HIGH);
-    digitalWrite(soundC, HIGH);
-  }
-  else if(soundName == "FlickIt")
-  {
     digitalWrite(soundA, HIGH);
-    digitalWrite(soundB, LOW);
-    digitalWrite(soundC, LOW);
   }
-  else if(soundName == "SqueezeIt")
-  {
-    digitalWrite(soundA, HIGH);
-    digitalWrite(soundB, LOW);
-    digitalWrite(soundC, HIGH);
-  }
-  else if(soundName == "ShakeIt")
-  {
-    digitalWrite(soundA, HIGH);
-    digitalWrite(soundB, HIGH);
-    digitalWrite(soundC, LOW);
-  }
-  delay(1000);
 }
 
 bool userHitNewInputCorrectlyInTime()
@@ -260,15 +289,15 @@ bool userHitNewInputCorrectlyInTime()
 int getTimeLimit(int score)
 {
   //The *4 is for debugging purposes to make delays longer 
-  if(score <= 10) return 3000*4;
-  else if(score <= 20) return 2900*4;
-  else if(score <= 30) return 2700*4;
-  else if(score <= 40) return 2500*4;
-  else if(score <= 50) return 2300*4;
-  else if(score <= 60) return 2000*4;
-  else if(score <= 70) return 1900*4;
-  else if(score <= 80) return 1800*4;
-  else if(score <= 90) return 1700*4;
+  if(score <= 10) return 3000;
+  else if(score <= 20) return 2900;
+  else if(score <= 30) return 2700;
+  else if(score <= 40) return 2500;
+  else if(score <= 50) return 2300;
+  else if(score <= 60) return 2000;
+  else if(score <= 70) return 1900;
+  else if(score <= 80) return 1800;
+  else if(score <= 90) return 1700;
   else return 1600*4;
 }
 
@@ -292,15 +321,15 @@ String chooseRandomInput(String inputs[])
 
 String getInput()
 {
-  if(analogRead(joystickX) > 1020 || analogRead(joystickX) < 20 || analogRead(joystickY) > 1020 || analogRead(joystickY) < 20)
+  if(analogRead(joystickX) > 990 || analogRead(joystickX) < 50 || analogRead(joystickY) > 990 || analogRead(joystickY) < 50)
   {
     return sensorInputList[1];
   }
-  else if (analogRead(velostat) < 150)
+  else if (analogRead(velostat) < velostatRest-75)
   {
     return sensorInputList[0];
   }
-  else if (analogRead(tilt) < 200)
+  else if (analogRead(tilt) > 200)
   {
     return sensorInputList[2];
   }
